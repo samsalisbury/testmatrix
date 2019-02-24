@@ -20,7 +20,12 @@ type Runner struct {
 	testNamesSkippedMu sync.Mutex
 	testNamesFailed    map[string]struct{}
 	testNamesFailedMu  sync.Mutex
-	parent             *Supervisor
+	parent             *supervisor
+}
+
+// NewRunner returns a new *Runner.
+func NewRunner(t *testing.T) *Runner {
+	return sup.newRunner(t)
 }
 
 func (pf *Runner) recordTestStarted(t *testing.T) {
@@ -49,8 +54,6 @@ type TearableDown interface {
 	Teardown(*testing.T)
 }
 
-// Context as well as *testing.T. Run runs the defined test with all possible
-// matrix combinations in parallel.
 func (pf *Runner) teardown(t *testing.T, f Fixture) {
 	if tear, ok := f.(TearableDown); ok {
 		tear.Teardown(t)

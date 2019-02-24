@@ -45,13 +45,8 @@ This lib also keeps track of tests run to provide summary information, and optio
 hooks for various stages of the test lifecycle.
 
 ```go
-// sup is global to each `go test` invocation - it keeps track of which tests have
-// been started, passed, failed etc, and has hooks to perform initialisation and
-// teardown.
-var sup *testmatrix.Supervisor
-
 func TestMain(m *testing.M) {
-	os.Exit(testmatrix.Run(m, &sup, matrix))
+	os.Exit(testmatrix.Run(m, makeMatrix))
 }
 ```
 
@@ -64,7 +59,7 @@ This means adding a dimension can add a lot of computational overhead, but also
 means you end up with broader coverage.
 
 ```go
-func matrix() *testmatrix.Matrix {
+func makeMatrix() *testmatrix.Matrix {
 	return testmatrix.New(
 		testmatrix.NewDimension("git", "version of git", "1", "2", "3"),
 		testmatrix.NewDimension("docker", "version of docker", "1", "2", "3"),

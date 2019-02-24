@@ -5,9 +5,17 @@ import (
 	"testing"
 )
 
-// Opts are global options for Supervisor.
+// sup is global state, and keeps track of tests started and finished, allowing
+// us to print a summary at the end. The rationale for using global state here
+// is that we want summary information for a single invocation of `go test`,
+// which implies that this state should be global to that invocation.
+var sup = newSupervisor()
+
+var opts = DefaultOpts()
+
+// Opts are global options.
 type Opts struct {
-	BeforeAll func() error
+	BeforeAll func()
 }
 
 // DefaultOpts returns the default opts.
@@ -16,41 +24,43 @@ func DefaultOpts() Opts {
 }
 
 // Run wraps all initialisation logic, runs the tests, and returns the
-// appropriate exit code.
+// appropriate exit code. This should only be called once, in TestMain.
 //
 // Your test package should declare a global *Supervisor and pass a pointer to
 // that here, it will be configured an populated ready to use in creating tests.
-func Run(m *testing.M, s **Supervisor, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
-	opts := DefaultOpts()
-	for _, c := range config {
-		c(&opts)
-	}
-	*s = Init(matrixFunc, opts)
-	defer (*s).PrintSummary()
+func Run(m *testing.M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
+	Init(matrixFunc, config...)
+	defer sup.PrintSummary()
 	return m.Run()
 }
 
-// Init must be called from TestMain after flag.Parse, to initialise a new
-// Supervisor. If Init returns nil, then tests will not be run this time (e.g.
-// because we are just listing tests or printing the matrix def etc.)
-func Init(defaultMatrix func() Matrix, opts Opts) *Supervisor {
+// Init ensures flags are parsed, and makes decision on whether to actually run
+// tests, or just print summaries etc. It invokes the BeforeAll hook in the case
+// that we are actually intending to run tests.
+func Init(matrixFunc func() Matrix, config ...func(*Opts)) {
 	if !flag.Parsed() {
 		flag.Parse()
 	}
+	for _, c := range config {
+		c(&opts)
+	}
+	sup.matrixFunc = matrixFunc
 	runRealTests := !(Flags.PrintMatrix || Flags.PrintDimensions)
 	if Flags.PrintDimensions {
-		defaultMatrix().PrintDimensions()
+		matrixFunc().PrintDimensions()
 	}
 	if !runRealTests {
-		return nil
+		return
 	}
 	if opts.BeforeAll != nil {
-		if err := opts.BeforeAll(); err != nil {
-			panic(err)
-		}
+		opts.BeforeAll()
 	}
-	return NewSupervisor()
+}
+
+// PrintSummary prints the summary of all tests run/passed/failed etc.
+// It must be called after all tests have run to completion.
+//
+// If using the Run func, you don't need to additionally call this.
+func PrintSummary() {
+	sup.PrintSummary()
 }

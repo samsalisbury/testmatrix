@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// A MatrixFunc returns a new Matrix.
+type MatrixFunc func() Matrix
+
 // Dimensions is a complete Matrix description, with all dimension's names and
 // possible values.
 type Dimensions map[string]Values

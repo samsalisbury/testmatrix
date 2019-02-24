@@ -7,24 +7,21 @@ import (
 	"github.com/samsalisbury/testmatrix"
 )
 
-// sup is the global matrix supervisor, used to collate all test results.
-var sup *testmatrix.Supervisor
-
 // TestMain tells us to run tests as defined in the matrix.
 // Note: if you need more control over TestMain, you can manually call
 // testmatrix.Init and testmatrix.PrintSummary instead of testmatrix.Run.
 // See the implementation of testmatrix.Run for details on how to do this.
 func TestMain(m *testing.M) {
-	os.Exit(testmatrix.Run(m, &sup, matrix))
+	os.Exit(testmatrix.Run(m, makeMatrix))
 }
 
-// matrix() returns the full test matrix. Note if certain matrix combinations
+// makeMatrix() returns the full test matrix. If certain matrix combinations
 // should not be tested, it is possible to make such derivations using the
 // Matrix.FixedDimension method, and more like it. Do this in top-level tests.
 //
 // The matrix func should always return a fresh matrix, so that references
 // are not shared between tests.
-func matrix() testmatrix.Matrix {
+func makeMatrix() testmatrix.Matrix {
 	return testmatrix.New(
 		testmatrix.Dimension{
 			Name: "fib",
@@ -74,4 +71,8 @@ func (r *runner) Run(name string, makeFixture fixtureFunc, test testFunc) {
 			test(t, f.(*fixture))
 		},
 	)
+}
+
+func newRunner(t *testing.T) *runner {
+	return &runner{testmatrix.NewRunner(t)}
 }
