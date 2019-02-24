@@ -104,7 +104,7 @@ func makeFixture(t *testing.T, scenario *testmatrix.Scenario) *fixture {
 
 #### Write a Run wrapper
 
-Since Go doesn't have generics, you can make your tests somewhat easier to write by
+You can make your tests somewhat easier to write, and less ugly, by
 adding a Run wrapper. This wraps the call to `testmatrix.Matrix.RunScenario` and
 performs any necessary unwrapping of types, so your tests can rely on strongly-typed
 fixtures.
@@ -143,7 +143,7 @@ Now you have the boilerplate set up, you're ready to write some tests.
 
 ```go
 func TestBlahBlah(t *testing.T) {
-	r := NewRunner()
+	r := newRunner()
 	r.Run("test one", makeFixture, func(t *testing.T, f *fixture) {
 		// Write a standard go test, using info from your fixture.
 		f.Fatalf("this test blew up!")
