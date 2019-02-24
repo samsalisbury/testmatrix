@@ -10,6 +10,10 @@ import (
 // sup is the global matrix supervisor, used to collate all test results.
 var sup *testmatrix.Supervisor
 
+// TestMain tells us to run tests as defined in the matrix.
+// Note: if you need more control over TestMain, you can manually call
+// testmatrix.Init and testmatrix.PrintSummary instead of testmatrix.Run.
+// See the implementation of testmatrix.Run for details on how to do this.
 func TestMain(m *testing.M) {
 	os.Exit(testmatrix.Run(m, &sup, matrix))
 }
@@ -34,13 +38,40 @@ func matrix() testmatrix.Matrix {
 	)
 }
 
-// scenario holds one value for each matrix dimension as described above.
-type scenario struct {
+// fixture represents a fully realised fixture, generated from the injected
+// scenario.
+type fixture struct {
 	fibProvider
 }
 
-func unwrapScenario(s testmatrix.Scenario) scenario {
-	return scenario{
+// fixtureFunc returns a strongly-typed *fixture.
+type fixtureFunc func(*testing.T, testmatrix.Scenario) *fixture
+
+// makeFixture is a fixtureFunc that creates a fixture from the give *testing.T
+// and scenario.
+func makeFixture(t *testing.T, s testmatrix.Scenario) *fixture {
+	return &fixture{
 		fibProvider: s.Value("fib").(fibProvider),
 	}
+}
+
+// testFunc is a test function that takes a stongly-typed *fixture.
+type testFunc func(*testing.T, *fixture)
+
+// runner wraps *testmatrix.Runner and adds a strongly-typed Run func.
+type runner struct{ *testmatrix.Runner }
+
+// Run accepts your strongly typed fixtureFunc and testFunc, wraps them up and
+// passes them through to the generic testmatrix.Runner.Run for execution.
+func (r *runner) Run(name string, makeFixture fixtureFunc, test testFunc) {
+	r.Runner.Run(name,
+		// Return a strongly typed fixture.
+		func(t *testing.T, s testmatrix.Scenario) testmatrix.Fixture {
+			return makeFixture(t, s)
+		},
+		// Unwrap strongly typed feature, pass to strongly typed test.
+		func(t *testing.T, f testmatrix.Fixture) {
+			test(t, f.(*fixture))
+		},
+	)
 }
