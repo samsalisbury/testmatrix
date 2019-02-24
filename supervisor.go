@@ -11,21 +11,19 @@ import (
 // There should be exactly one global Supervisor in every package that uses
 // testmatrix.
 type Supervisor struct {
-	mu             sync.Mutex
-	GetAddrs       func(int) []string
-	fixtures       map[string]*Runner
-	wg             sync.WaitGroup
-	fixtureFactory FixtureFactory
+	mu       sync.Mutex
+	GetAddrs func(int) []string
+	fixtures map[string]*Runner
+	wg       sync.WaitGroup
 }
 
 // NewSupervisor returns a new *Supervisor ready to produce test fixtures for
 // your tests using ff. NewSupervisor should be called at most once per package.
 // Calline NewSupervisor more than once will split up test summaries and lead to
 // less useful output. In future it may panic to prevent this.
-func NewSupervisor(ff FixtureFactory) *Supervisor {
+func NewSupervisor() *Supervisor {
 	return &Supervisor{
-		fixtureFactory: ff,
-		fixtures:       map[string]*Runner{},
+		fixtures: map[string]*Runner{},
 	}
 }
 
@@ -40,7 +38,7 @@ func (pfs *Supervisor) NewRunner(t *testing.T, m Matrix) *Runner {
 		for _, m := range matrix {
 			fmt.Printf("%s/%s\n", t.Name(), m)
 		}
-		t.Skip("Just printing test matrix (-ls-matrix flag set)")
+		t.Skip("Just printing test matrix.")
 	}
 	t.Helper()
 	t.Parallel()

@@ -6,6 +6,24 @@ import (
 	"strings"
 )
 
+// Dimensions is a complete Matrix description, with all dimension's names and
+// possible values.
+type Dimensions map[string]Values
+
+// Values is mapping of all the possible values' names (for a single dimension)
+// to their values for use in tests.
+type Values map[string]interface{}
+
+// StringValues creates a Values where each value is identical to the provided
+// key. This is useful where just the string is enough input for your tests.
+func StringValues(values ...string) Values {
+	v := make(Values, len(values))
+	for _, s := range values {
+		v[s] = s
+	}
+	return v
+}
+
 // Matrix is a set of named dimensions and possible values, the Cartesian
 // product of these values is used to produce Scenarios which are handed down
 // to your tests.

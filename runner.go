@@ -44,7 +44,11 @@ type ScenarioTest func(*testing.T, Scenario, *LateFixture)
 type FixtureFactory func(*testing.T, Scenario) Fixture
 
 // Fixture Teardown func is called after each test has finished.
-type Fixture interface {
+type Fixture interface{}
+
+// TearableDown is a kind of Fixture that can be torn down after a test has
+// finished.
+type TearableDown interface {
 	Teardown(*testing.T)
 }
 
@@ -75,36 +79,9 @@ func (lf *LateFixture) Set(f Fixture) {
 // Run is analogous to *testing.T.Run, but takes a method that includes a
 // Context as well as *testing.T. Run runs the defined test with all possible
 // matrix combinations in parallel.
-func (pf *Runner) Run(name string, test Test) {
-	for _, c := range pf.matrix.scenarios() {
-		c := c
-		pf.t.Run(c.String()+"/"+name, func(t *testing.T) {
-			pf.recordTestStarted(t)
-			pf.parent.wg.Add(1)
-			t.Parallel()
-			f := new(Fixture)
-			defer func() {
-				timeout := 10 * time.Second
-				defer pf.parent.wg.Done()
-				pf.recordTestStatus(t)
-				select {
-				case <-time.After(10 * time.Second):
-					rtLog("ERROR: Teardown took longer than %s", timeout)
-				case <-func() <-chan struct{} {
-					c := make(chan struct{})
-					go func() {
-						if *f != nil {
-							(*f).Teardown(t)
-						}
-						close(c)
-					}()
-					return c
-				}():
-				}
-			}()
-			*f = pf.parent.fixtureFactory(t, c)
-			test(t, Context{Scenario: c, F: *f})
-		})
+func (pf *Runner) teardown(t *testing.T, f Fixture) {
+	if tear, ok := f.(TearableDown); ok {
+		tear.Teardown(t)
 	}
 }
 
@@ -128,7 +105,7 @@ func (pf *Runner) RunScenario(name string, test ScenarioTest) {
 					go func() {
 						<-lf.created
 						if lf.f != nil {
-							lf.f.Teardown(t)
+							pf.teardown(t, lf.f)
 						}
 						close(c)
 					}()

@@ -11,6 +11,6 @@ var Flags = struct {
 }{}
 
 func init() {
-	flag.BoolVar(&Flags.PrintDimensions, "dimensions", false, "list test matrix dimensions")
-	flag.BoolVar(&Flags.PrintMatrix, "ls", false, "list test matrix names")
+	flag.BoolVar(&Flags.PrintDimensions, "matrix.print-dimensions", false, "list test matrix dimensions")
+	flag.BoolVar(&Flags.PrintMatrix, "matrix.print-top-level", false, "list test matrix names")
 }
