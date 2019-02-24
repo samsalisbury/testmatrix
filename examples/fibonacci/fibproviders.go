@@ -1,25 +1,42 @@
+// Package fibonacci is a contrived example to show
+// github.com/samsalisbury/testmatrix in action.
+//
+// You are recommended not to use this for anything other than demonstration
+// purposes.
 package fibonacci
 
-type fibProvider interface {
+// Provider is a provider of a Fibonacci function.
+type Provider interface {
 	Fib(int) int
 }
 
+// Enhancer enhances a Provider.
+type Enhancer func(Provider) Provider
+
 type (
-	fibRecur struct{}
-	fibIter  struct{}
-	fibMemo  struct {
-		results []int
+	// Recursive gets Fibonacci sequences the hard way.
+	Recursive struct{}
+
+	// Iterative gets Fibonacci sequences without burning the stack.
+	Iterative struct{}
+
+	// Memoized remembers its results.
+	Memoized struct {
+		results  []int
+		provider Provider
 	}
 )
 
-func (f *fibRecur) Fib(n int) int {
+// Fib returns the nth Fibonacci number the hard way.
+func (f *Recursive) Fib(n int) int {
 	if n < 2 {
 		return n
 	}
 	return f.Fib(n-1) + f.Fib(n-2)
 }
 
-func (f *fibIter) Fib(n int) int {
+// Fib returns the nth Fibonacci number the iterative way.
+func (f *Iterative) Fib(n int) int {
 	if n < 2 {
 		return n
 	}
@@ -30,14 +47,25 @@ func (f *fibIter) Fib(n int) int {
 	return acc
 }
 
-func (f *fibMemo) Fib(n int) int {
+// NewMemoized returns a Memoized version of p.
+func NewMemoized(p Provider) *Memoized {
+	return &Memoized{provider: p}
+}
+
+// Memoize is an Enhancer.
+func Memoize(p Provider) Provider {
+	return NewMemoized(p)
+}
+
+// Fib returns the nth Fibonacci number, sometimes from memory.
+func (f *Memoized) Fib(n int) int {
 	if len(f.results) > n {
 		return f.results[n]
 	}
 	if n < 2 {
 		f.results = append(f.results, n)
 	} else {
-		f.results = append(f.results, f.Fib(n-1)+f.Fib(n-2))
+		f.results = append(f.results, f.provider.Fib(n-1)+f.provider.Fib(n-2))
 	}
 	return f.Fib(n)
 }

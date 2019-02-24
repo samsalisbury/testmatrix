@@ -27,9 +27,16 @@ func makeMatrix() testmatrix.Matrix {
 			Name: "fib",
 			Desc: "fibbonaci func",
 			Values: testmatrix.Values{
-				"recur": &fibRecur{},
-				"iter":  &fibIter{},
-				"memo":  &fibMemo{},
+				"recur": &Recursive{},
+				"iter":  &Iterative{},
+			},
+		},
+		testmatrix.Dimension{
+			Name: "enhancement",
+			Desc: "which enhancement to use",
+			Values: testmatrix.Values{
+				"plain":    Enhancer(func(p Provider) Provider { return p }),
+				"memoized": Enhancer(func(p Provider) Provider { return NewMemoized(p) }),
 			},
 		},
 	)
@@ -38,7 +45,7 @@ func makeMatrix() testmatrix.Matrix {
 // fixture represents a fully realised fixture, generated from the injected
 // scenario.
 type fixture struct {
-	fibProvider
+	Provider
 }
 
 // fixtureFunc returns a strongly-typed *fixture.
@@ -47,8 +54,10 @@ type fixtureFunc func(*testing.T, testmatrix.Scenario) *fixture
 // makeFixture is a fixtureFunc that creates a fixture from the give *testing.T
 // and scenario.
 func makeFixture(t *testing.T, s testmatrix.Scenario) *fixture {
+	provider := s.Value("fib").(Provider)
+	enhanced := s.Value("enhancement").(Enhancer)
 	return &fixture{
-		fibProvider: s.Value("fib").(fibProvider),
+		Provider: enhanced(provider),
 	}
 }
 
