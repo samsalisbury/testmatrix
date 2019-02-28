@@ -1,8 +1,14 @@
 # testmatrix
 
+testmatrix is a fully `go test` compatible library
+for expanding your test coverage
+with minimal overhead.
+
 ## What?
 
-Write a set of tests, have each of them run in a multitude of different ways.
+1. Define an N-dimensional matrix of factors that might affect your system.
+2. Have your tests run against every possible combination of those factors.
+3. Discover hard to find bugs before your end users.
 
 ## Why?
 
@@ -24,8 +30,7 @@ Use the `go test -run` flag to run specific tests (with specific matrix combinat
 Additional flags help you navigate the matrix:
 
 ```sh
-go test -matrix.expand     # List all matrix expansions.
-go test -matrix.dimensions # Describe all dimensions of the matrix.
+go test . -tm.info # Print matrix info without running tests.
 ```
 
 ### Writing Tests
