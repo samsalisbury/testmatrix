@@ -1,0 +1,10 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/samsalisbury/testmatrix
+    steps:
+      - checkout
+      - run: go test -v -count=1 -race ./...
