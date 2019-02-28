@@ -23,22 +23,14 @@ func TestMain(m *testing.M) {
 // are not shared between tests.
 func makeMatrix() testmatrix.Matrix {
 	return testmatrix.New(
-		testmatrix.Dimension{
-			Name: "fib",
-			Desc: "fibbonaci func",
-			Values: testmatrix.Values{
-				"recur": &Recursive{},
-				"iter":  &Iterative{},
-			},
-		},
-		testmatrix.Dimension{
-			Name: "enhancement",
-			Desc: "which enhancement to use",
-			Values: testmatrix.Values{
-				"plain":    Enhancer(func(p Provider) Provider { return p }),
-				"memoized": Enhancer(func(p Provider) Provider { return NewMemoized(p) }),
-			},
-		},
+		testmatrix.Dim("fib", "fibbonaci func", testmatrix.Values{
+			"recur": &Recursive{},
+			"iter":  &Iterative{},
+		}),
+		testmatrix.Dim("enhancement", "which enhancement to use", testmatrix.Values{
+			"plain":    Enhancer(func(p Provider) Provider { return p }),
+			"memoized": Enhancer(func(p Provider) Provider { return NewMemoized(p) }),
+		}),
 	)
 }
 

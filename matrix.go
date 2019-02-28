@@ -27,13 +27,13 @@ func StringValues(values ...string) Values {
 	return v
 }
 
-// Matrix is a set of named dimensions and possible values, the Cartesian
-// product of these values is used to produce Scenarios which are handed down
-// to your tests.
+// Matrix is a compiled set of named dimensions and possible values.
+// Every combination of a single value from each dimension forms a Scenario.
+// Each test you define will be run once for each possible Scenario.
 type Matrix struct {
 	orderedDimensionNames []string
 	orderedDimensionDescs []string
-	dimensions            map[string]map[string]interface{}
+	dimensions            Dimensions
 }
 
 // Scenario is a single combination of values from a Matrix.
@@ -46,12 +46,25 @@ type Binding struct {
 }
 
 // New returns a new Matrix.
+// Note that the order of Dimensions is significant in determining the name of
+// each sub-test run. I.e. if you have 3 dimensions, and a sub-test is being run
+// with value "a" for the first, "b" for the second, and "c" for the third, the
+// test name will be "<top-level-test-name>/a/b/c/<subtest-name>.
 func New(dimensions ...Dimension) Matrix {
-	m := Matrix{dimensions: map[string]map[string]interface{}{}}
+	m := Matrix{dimensions: Dimensions{}}
 	for _, d := range dimensions {
-		m.AddDimension(d.Name, d.Desc, d.Values)
+		m.addDimension(d.name, d.desc, d.values)
 	}
 	return m
+}
+
+// FixedDimension returns a new Matrix based on m with one of its dimensions
+// fixed to a particular value. This can be used when writing tests where
+// only a single value for one particular dimension is appropriate.
+func (m Matrix) FixedDimension(dimensionName, valueName string) Matrix {
+	return m.clone(func(dimension, value string) bool {
+		return dimension != dimensionName || value == valueName
+	})
 }
 
 // PrintDimensions writes the dimensions an allowed values to stdout.
@@ -72,29 +85,20 @@ func (m Matrix) PrintDimensions() {
 	}
 }
 
-// AddDimension adds a new dimension to this matrix with the provided name
+// addDimension adds a new dimension to this matrix with the provided name
 // and desc which is used in help text when using -matrix flag on 'go test'.
 // The values are a map of short value names to concrete representations, which
 // are passed to tests. The names of values map to parts of the sub-test path
 // for 'go test -run' flag.
-func (m *Matrix) AddDimension(name, desc string, values map[string]interface{}) {
+func (m *Matrix) addDimension(name, desc string, values Values) {
 	m.orderedDimensionNames = append(m.orderedDimensionNames, name)
 	m.orderedDimensionDescs = append(m.orderedDimensionDescs, desc)
 	m.dimensions[name] = values
 }
 
-// FixedDimension returns a matrixDef based on m with one of its dimensions
-// fixed to a particular value. This can be used when writing tests where
-// only a single value for one particular dimension is appropriate.
-func (m Matrix) FixedDimension(dimensionName, valueName string) Matrix {
-	return m.clone(func(dimension, value string) bool {
-		return dimension != dimensionName || value == valueName
-	})
-}
-
 func (m Matrix) clone(include func(dimension, value string) bool) Matrix {
 	n := m
-	n.dimensions = map[string]map[string]interface{}{}
+	n.dimensions = Dimensions{}
 	for name, values := range m.dimensions {
 		nv := map[string]interface{}{}
 		for vn, v := range values {
