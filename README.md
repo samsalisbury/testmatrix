@@ -124,11 +124,11 @@ At the moment, this is a little ugly, but typically looks like this:
 
 ```go
 
-// runner wraps the *testmatrix.Runner so you get all of its methods by default.
+// runner wraps the *testmatrix.Runner so we can add our own Run method.
 type runner struct{ *testmatrix.Runner }
 
-// NewRunner returns a newly configured runner. You need one of these for each top-level
-// test.
+// newRunner returns a newly configured runner.
+// You need one of these for each top-level test.
 func newRunner(t *testing.T) *runner {
 	return &runner{testmatrix.NewRunner(t)}
 }
