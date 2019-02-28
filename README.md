@@ -61,10 +61,15 @@ means you end up with broader coverage.
 ```go
 func makeMatrix() *testmatrix.Matrix {
 	return testmatrix.New(
-		testmatrix.NewDimension("git", "version of git", "1", "2", "3"),
-		testmatrix.NewDimension("docker", "version of docker", "1", "2", "3"),
-		testmatrix.NewDimension("kubectl", "version kubectl", "1", "2", "3"),
-		testmatrix.NewDimension("kubeapi", "version kubeapi", "1", "2", "3"),
+		testmatrix.Dim("git", "version of git", testmatrix.Values{
+			"2.19.0": struct{}{},
+			"1.0.0": struct{}{},
+		}),
+		testmatrix.Dim("docker", "version of docker", testmatrix.Values{
+			"1.0.0": "https://download.docker.com/v1.0.0",			
+			"2.0.0": "https://download.docker.com/v2.0.0",			
+		}),
+		...
 	)
 }
 ```
@@ -74,6 +79,8 @@ func makeMatrix() *testmatrix.Matrix {
 testmatrix insists you pass a fixture to each test. The fixture can be anything
 you want, but is typically a struct containing information about a test environment
 you have spun up for this test in particular. It may have helper methods attached etc.
+
+The fixture may implement a Teardown method, see below for details.
 
 You must define a func that takes a `*testing.T` and a `testmatrix.Scenario` to create
 your fixture. This is invoked automatically by testmatrix just before each test is run,
@@ -145,3 +152,7 @@ func TestBlahBlah(t *testing.T) {
 	})
 }
 ```
+
+### Fixture Teardown
+
+TODO: Document this.
