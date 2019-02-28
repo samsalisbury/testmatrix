@@ -86,10 +86,10 @@ func (m Matrix) String() string {
 	var out string
 	for i := 0; i < maxRows; i++ {
 		for _, c := range cols {
-			if len(c) <= i {
-				continue
+			if len(c) > i {
+				out += c[i]
 			}
-			out += c[i] + "\t"
+			out += "\t"
 		}
 		out += "\n"
 	}
