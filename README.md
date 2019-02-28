@@ -109,39 +109,53 @@ func makeFixture(t *testing.T, scenario *testmatrix.Scenario) *fixture {
 }
 ```
 
-#### Write a Run wrapper
+#### Do some type wrapping
 
-You can make your tests somewhat easier to write, and less ugly, by
-adding a Run wrapper. This wraps the call to `testmatrix.Matrix.RunScenario` and
-performs any necessary unwrapping of types, so your tests can rely on strongly-typed
-fixtures.
+You can make your tests somewhat easier to write
+by defining your own `testFunc` and `fixtureFunc` types.
+(Rather than relying on the weakly typed
+`testmatrix.Test` and `testmatrix.FixtureFactory` respectively,
+in your own tests.)
+You can then add a strongly-typed wrapper around testmatrix.Runner,
+and redefine the `Run` method to map between these weakly and strongly typed
+tests and fixtures.
 
-At the moment, this is pretty ugly, but typically looks like this:
+At the moment, this is a little ugly, but typically looks like this:
 
 ```go
-// Define your test type (analogous to testmatrix.Test but takes a *fixture
-// instead of interface{}).
-type test func(*testing.T, *fixture)
 
 // runner wraps the *testmatrix.Runner so you get all of its methods by default.
 type runner struct{ *testmatrix.Runner }
 
+// NewRunner returns a newly configured runner. You need one of these for each top-level
+// test.
+func newRunner(t *testing.T) *runner {
+	return &runner{testmatrix.NewRunner(t)}
+}
+
+// testFunc is the strongly typed test function signature you will use to write your test.
+type testFunc func(*testing.T, *fixture)
+
+// fixtureFunc is a strongly typed fixture generation function.
 type fixtureFunc func(*testing.T, testmatrix.Scenario) (*fixture)
 
 // Run is analogous to *testing.T.Run in that it creates a subtest.
-func (r *runner) Run(name string, makeFixture fixtureFunc, test test) {
-	r.Runner.RunScenario(name, func(t *testing.T, s testmatrix.Scenario, lf *testmatrix.LateFixture) {
-		fix := makeFixture(t, s)
-		lf.Set(fix)
-		test(t, fix)
-	})
+// Run accepts your strongly typed fixtureFunc and testFunc, wraps them up and
+// passes them through to the generic testmatrix.Runner.Run for execution.
+func (r *runner) Run(name string, makeFixture fixtureFunc, test testFunc) {
+	r.Runner.Run(name,
+		// Return testmatrix.Fixture which is really a *fixture.
+		func(t *testing.T, s testmatrix.Scenario) testmatrix.Fixture {
+			return makeFixture(t, s)
+		},
+		// Cast that testmatrix.Fixture back to the strongly typed *fixture
+		// we know it really to be...
+		func(t *testing.T, f testmatrix.Fixture) {
+			test(t, f.(*fixture))
+		},
+	)
 }
 
-// NewRunner returns a newly configured runner. You need one of these for each top-level
-// test.
-func newRunner() *runner {
-	return &runner{sup.NewRunner()}
-}
 ```
 
 #### Write your tests
