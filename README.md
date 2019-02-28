@@ -1,5 +1,7 @@
 # testmatrix
 
+[![CircleCI](https://circleci.com/gh/samsalisbury/testmatrix/tree/master.svg?style=svg)](https://circleci.com/gh/samsalisbury/testmatrix/tree/master)
+
 testmatrix is a fully `go test` compatible library
 for expanding your test coverage
 with minimal overhead.
