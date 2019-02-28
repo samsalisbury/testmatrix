@@ -67,22 +67,38 @@ func (m Matrix) FixedDimension(dimensionName, valueName string) Matrix {
 	})
 }
 
+// String returns a description of this matrix.
+func (m Matrix) String() string {
+	cols := make([][]string, len(m.orderedDimensionNames))
+	var maxRows int
+	for i, name := range m.orderedDimensionNames {
+		cols[i] = append(cols[i], name, "-")
+		rowCount := 2 // 2 for the column header and divider
+		for valueName := range m.dimensions[name] {
+			rowCount++
+			cols[i] = append(cols[i], valueName)
+		}
+		sort.Strings(cols[i][1:])
+		if rowCount > maxRows {
+			maxRows = rowCount
+		}
+	}
+	var out string
+	for i := 0; i < maxRows; i++ {
+		for _, c := range cols {
+			if len(c) <= i {
+				continue
+			}
+			out += c[i] + "\t"
+		}
+		out += "\n"
+	}
+	return out
+}
+
 // PrintDimensions writes the dimensions an allowed values to stdout.
 func (m Matrix) PrintDimensions() {
-	var out []string
-	for _, name := range m.orderedDimensionNames {
-		out = append(out, "<"+name+">")
-	}
-	fmt.Printf("Matrix dimensions: <top-level>/%s\n", strings.Join(out, "/"))
-	for i, name := range m.orderedDimensionNames {
-		desc := m.orderedDimensionDescs[i]
-		fmt.Printf("Dimension %s: %s (", name, desc)
-		d := m.dimensions[name]
-		for valueName := range d {
-			fmt.Printf(" %s", valueName)
-		}
-		fmt.Print(" )\n")
-	}
+	fmt.Println(m.String())
 }
 
 // addDimension adds a new dimension to this matrix with the provided name
