@@ -30,7 +30,7 @@ func newSupervisor() *supervisor {
 // panic.
 func (s *supervisor) newRunner(t *testing.T) *Runner {
 	matrix := s.matrixFunc()
-	if Flags.PrintMatrix {
+	if *printInfo {
 		scenarios := matrix.scenarios()
 		for _, s := range scenarios {
 			fmt.Printf("%s/%s\n", t.Name(), s)
@@ -92,7 +92,14 @@ func (s *supervisor) PrintSummary() {
 		}
 	}
 
-	summary := fmt.Sprintf("Summary: %d failed; %d skipped; %d passed; %d missing (total %d)",
-		len(failed), len(skipped), len(passed), len(missing), len(total))
+	// By default, don't print anything for 'missing' if all tests reported
+	// back. In general this should happen rarely so showing it is just noise.
+	var missingStr string
+	if len(missing) != 0 {
+		missingStr = fmt.Sprintf("%d missing ", len(missing))
+	}
+
+	summary := fmt.Sprintf("Summary: %d failed; %d skipped; %d passed; %s(total %d)",
+		len(failed), len(skipped), len(passed), missingStr, len(total))
 	fmt.Fprintln(os.Stdout, summary)
 }

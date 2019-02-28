@@ -7,8 +7,9 @@ import (
 
 // sup is global state, and keeps track of tests started and finished, allowing
 // us to print a summary at the end. The rationale for using global state here
-// is that we want summary information for a single invocation of `go test`,
-// which implies that this state should be global to that invocation.
+// is that we want summary information for a single invocation of `go test`, on
+// a single package, which implies that this state should be global to that
+// invocation.
 var sup = newSupervisor()
 
 var opts = DefaultOpts()
@@ -45,11 +46,8 @@ func Init(matrixFunc func() Matrix, config ...func(*Opts)) {
 		c(&opts)
 	}
 	sup.matrixFunc = matrixFunc
-	runRealTests := !(Flags.PrintMatrix || Flags.PrintDimensions)
-	if Flags.PrintDimensions {
+	if *printInfo {
 		matrixFunc().PrintDimensions()
-	}
-	if !runRealTests {
 		return
 	}
 	if opts.BeforeAll != nil {

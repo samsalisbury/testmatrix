@@ -23,7 +23,9 @@ type Runner struct {
 	parent             *supervisor
 }
 
-// NewRunner returns a new *Runner.
+// NewRunner returns a new *Runner bound to top-level package test t.
+// You must only call NewRunner once per top-level package test, and never for
+// any subtest.
 func NewRunner(t *testing.T) *Runner {
 	return sup.newRunner(t)
 }
@@ -72,10 +74,11 @@ func (pf *Runner) Run(name string, makeFixture FixtureFactory, test Test) {
 			pf.parent.wg.Add(1)
 			fix := makeFixture(t, c)
 			defer func() {
+				// TODO: Make timeout configurable.
 				timeout := 10 * time.Second
 				defer pf.parent.wg.Done()
 				select {
-				case <-time.After(10 * time.Second):
+				case <-time.After(timeout):
 					rtLog("ERROR: Teardown took longer than %s", timeout)
 				case <-func() <-chan struct{} {
 					c := make(chan struct{})
@@ -87,6 +90,7 @@ func (pf *Runner) Run(name string, makeFixture FixtureFactory, test Test) {
 				}():
 				}
 			}()
+			// TODO: Make parallel configurable.
 			t.Parallel()
 			test(t, fix)
 		})
