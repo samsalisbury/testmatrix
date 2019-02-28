@@ -163,7 +163,6 @@ func (pf *Runner) printSummary() (total, passed, skipped, failed, missing []stri
 	if !Quiet {
 		summary := fmt.Sprintf("%s summary: %d failed; %d skipped; %d passed (total %d)",
 			t.Name(), len(failed), len(skipped), len(passed), len(total))
-		t.Log(summary)
 		fmt.Fprintln(os.Stdout, summary)
 	}
 
