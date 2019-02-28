@@ -10,8 +10,8 @@ type Provider interface {
 	Fib(int) int
 }
 
-// Enhancer enhances a Provider.
-type Enhancer func(Provider) Provider
+// Decorator decorates a Provider.
+type Decorator func(Provider) Provider
 
 type (
 	// Recursive gets Fibonacci sequences the hard way.
@@ -52,9 +52,14 @@ func NewMemoized(p Provider) *Memoized {
 	return &Memoized{provider: p}
 }
 
-// Memoize is an Enhancer.
+// Memoize decorates p with memoization.
 func Memoize(p Provider) Provider {
 	return NewMemoized(p)
+}
+
+// NoDecorator is a noop Decorator.
+func NoDecorator(p Provider) Provider {
+	return p
 }
 
 // Fib returns the nth Fibonacci number, sometimes from memory.

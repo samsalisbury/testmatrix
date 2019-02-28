@@ -27,9 +27,9 @@ func makeMatrix() testmatrix.Matrix {
 			"recur": &Recursive{},
 			"iter":  &Iterative{},
 		}),
-		testmatrix.Dim("enhancement", "which enhancement to use", testmatrix.Values{
-			"plain":    Enhancer(func(p Provider) Provider { return p }),
-			"memoized": Enhancer(func(p Provider) Provider { return NewMemoized(p) }),
+		testmatrix.Dim("decorator", "decorator to use", testmatrix.Values{
+			"none": NoDecorator,
+			"memo": Memoize,
 		}),
 	)
 }
@@ -47,9 +47,9 @@ type fixtureFunc func(*testing.T, testmatrix.Scenario) *fixture
 // and scenario.
 func makeFixture(t *testing.T, s testmatrix.Scenario) *fixture {
 	provider := s.Value("fib").(Provider)
-	enhanced := s.Value("enhancement").(Enhancer)
+	decorated := s.Value("decorator").(Decorator)
 	return &fixture{
-		Provider: enhanced(provider),
+		Provider: decorated(provider),
 	}
 }
 
