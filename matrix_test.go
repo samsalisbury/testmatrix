@@ -17,22 +17,13 @@ func TestNew(t *testing.T) {
 			return New()
 		}, 0},
 		{"one", func() Matrix {
-			return New(Dim("dim1", "", Values{}))
+			return New(makeTestDim(1, 1))
 		}, 1},
 		{"two", func() Matrix {
-			return New(
-				Dim("dim1", "", Values{}),
-				Dim("dim2", "", Values{}),
-			)
+			return New(makeTestDims(2, alwaysOneValue)...)
 		}, 2},
 		{"5", func() Matrix {
-			return New(
-				Dim("dim1", "", Values{}),
-				Dim("dim2", "", Values{}),
-				Dim("dim3", "", Values{}),
-				Dim("dim4", "", Values{}),
-				Dim("dim5", "", Values{}),
-			)
+			return New(makeTestDims(5, alwaysOneValue)...)
 		}, 5},
 	}
 	for _, tc := range cases {
@@ -57,8 +48,8 @@ func TestNew_error(t *testing.T) {
 	}{
 		{"dupe", func() Matrix {
 			return New(
-				Dim("dim1", "", Values{}),
-				Dim("dim1", "", Values{}),
+				Dim("dim1", "", Values{"a": struct{}{}}),
+				Dim("dim1", "", Values{"b": struct{}{}}),
 			)
 		}, `duplicate dimension name "dim1"`},
 	}
