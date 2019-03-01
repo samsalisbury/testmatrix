@@ -5,6 +5,52 @@ import (
 	"testing"
 )
 
+func makeTestDims(count int, valueCountFunc func(index int) (valueCount int)) []Dimension {
+	ds := make([]Dimension, count)
+	for i := 0; i < count; i++ {
+		ds[i] = makeTestDim(i, valueCountFunc(i))
+	}
+	return ds
+}
+
+func alwaysOneValue(int) int {
+	return 1
+}
+
+func alwaysNValues(n int) func(int) int {
+	return func(int) int { return n }
+}
+
+func TestMakeTestDims(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		namePrefix             string
+		dimCount, wantValCount int
+		valCountFunc           func(int) int
+	}{
+		{"alwaysOneValue", 1, 1, alwaysOneValue},
+		{"alwaysTwoValues", 1, 2, alwaysNValues(2)},
+		{"alwaysTenValues", 1, 10, alwaysNValues(10)},
+		{"alwaysTenValues", 10, 10, alwaysNValues(10)},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(fmt.Sprintf("%s/%d/%d", tc.namePrefix, tc.dimCount, tc.wantValCount), func(t *testing.T) {
+			t.Parallel()
+			got := makeTestDims(tc.dimCount, tc.valCountFunc)
+			if len(got) != tc.dimCount {
+				t.Fatalf("got %d Dimensions; want %d", len(got), tc.dimCount)
+			}
+			for _, d := range got {
+				if len(d.values) != tc.wantValCount {
+					t.Errorf("got %d values; want %d", len(d.values), tc.wantValCount)
+				}
+			}
+		})
+
+	}
+}
+
 // makeTestDim returns a Dimension named "dim<index>" with valueCount values
 // for testing purposes.
 func makeTestDim(index, valueCount int) Dimension {
