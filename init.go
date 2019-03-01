@@ -1,3 +1,13 @@
+// Package testmatrix enables you to define an N-dimensional matrix
+// of named variables, and have each test you write be run once for
+// each possible combination of those variables.
+//
+// This was largely written to support testing of github.com/opentable/sous
+// but should be applicable to any situation where you can write tests that
+// expect to see the same behaviour externally for differing implementations
+// of underlying libraries/types/functions/external binaries etc.
+//
+// See the examples directory for some contrived examples to get you started.
 package testmatrix
 
 import (
@@ -33,8 +43,8 @@ func DefaultOpts() Opts {
 // Run wraps all initialisation logic, runs the tests, and returns the
 // appropriate exit code. This should only be called once, in TestMain.
 //
-// Your test package should declare a global *Supervisor and pass a pointer to
-// that here, it will be configured an populated ready to use in creating tests.
+// You should pass the *testing.M from TestMain as the first parameter.
+// We depend in the interface M for testing purposes.
 func Run(m M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
 	if !Init(matrixFunc, config...).ShouldRunTests() {
 		return 0
@@ -67,7 +77,7 @@ func Init(matrixFunc func() Matrix, config ...func(*Opts)) Opts {
 	return opts
 }
 
-// PrintSummary prints the summary of all tests run/passed/failed etc.
+// PrintSummary prints the summary of all tests run/passed/failed.
 // It must be called after all tests have run to completion.
 //
 // If using the Run func, you don't need to additionally call this.
