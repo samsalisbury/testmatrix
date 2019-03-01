@@ -17,16 +17,6 @@ type Dimensions map[string]Values
 // to their values for use in tests.
 type Values map[string]interface{}
 
-// StringValues creates a Values where each value is identical to the provided
-// key. This is useful where just the string is enough input for your tests.
-func StringValues(values ...string) Values {
-	v := make(Values, len(values))
-	for _, s := range values {
-		v[s] = s
-	}
-	return v
-}
-
 // Matrix is a compiled set of named dimensions and possible values.
 // Every combination of a single value from each dimension forms a Scenario.
 // Each test you define will be run once for each possible Scenario.
