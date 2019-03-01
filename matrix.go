@@ -97,9 +97,12 @@ func (m Matrix) PrintDimensions() {
 // are passed to tests. The names of values map to parts of the sub-test path
 // for 'go test -run' flag.
 func (m *Matrix) addDimension(name, desc string, values Values) {
+	if _, ok := m.dimensions[name]; ok {
+		panic(fmt.Sprintf("duplicate dimension name %q", name))
+	}
+	m.dimensions[name] = values
 	m.orderedDimensionNames = append(m.orderedDimensionNames, name)
 	m.orderedDimensionDescs = append(m.orderedDimensionDescs, desc)
-	m.dimensions[name] = values
 }
 
 func (m Matrix) clone(include func(dimension, value string) bool) Matrix {
