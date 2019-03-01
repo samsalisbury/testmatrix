@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 		{"two", func() Matrix {
 			return New(makeTestDims(2, alwaysOneValue)...)
 		}, 2},
-		{"5", func() Matrix {
+		{"five", func() Matrix {
 			return New(makeTestDims(5, alwaysOneValue)...)
 		}, 5},
 	}
@@ -52,6 +52,12 @@ func TestNew_error(t *testing.T) {
 				Dim("dim1", "", Values{"b": struct{}{}}),
 			)
 		}, `duplicate dimension name "dim1"`},
+		{"novals", func() Matrix {
+			return New(
+				Dim("dim1", "", Values{"a": struct{}{}}),
+				Dim("dim2", "", Values{}),
+			)
+		}, `no values for dimension "dim2"`},
 	}
 	for _, tc := range cases {
 		tc := tc
