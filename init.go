@@ -16,7 +16,14 @@ var opts = DefaultOpts()
 
 // Opts are global options.
 type Opts struct {
-	BeforeAll func()
+	BeforeAll     func()
+	PrintInfoOnly bool
+}
+
+// ShouldRunTests returns true if we want to actually run tests, not just print
+// info about the matrix.
+func (o Opts) ShouldRunTests() bool {
+	return !o.PrintInfoOnly
 }
 
 // DefaultOpts returns the default opts.
@@ -30,7 +37,9 @@ func DefaultOpts() Opts {
 // Your test package should declare a global *Supervisor and pass a pointer to
 // that here, it will be configured an populated ready to use in creating tests.
 func Run(m *testing.M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
-	Init(matrixFunc, config...)
+	if !Init(matrixFunc, config...).ShouldRunTests() {
+		return 0
+	}
 	defer sup.PrintSummary()
 	return m.Run()
 }
@@ -38,7 +47,9 @@ func Run(m *testing.M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCod
 // Init ensures flags are parsed, and makes decision on whether to actually run
 // tests, or just print summaries etc. It invokes the BeforeAll hook in the case
 // that we are actually intending to run tests.
-func Init(matrixFunc func() Matrix, config ...func(*Opts)) {
+// If Init returns false, then the user does not intend to run tests, only to
+// print diagnostic information.
+func Init(matrixFunc func() Matrix, config ...func(*Opts)) Opts {
 	if !flag.Parsed() {
 		flag.Parse()
 	}
@@ -48,11 +59,13 @@ func Init(matrixFunc func() Matrix, config ...func(*Opts)) {
 	sup.matrixFunc = matrixFunc
 	if *printInfo {
 		matrixFunc().PrintDimensions()
-		return
+		opts.PrintInfoOnly = true
+		return opts
 	}
 	if opts.BeforeAll != nil {
 		opts.BeforeAll()
 	}
+	return opts
 }
 
 // PrintSummary prints the summary of all tests run/passed/failed etc.
