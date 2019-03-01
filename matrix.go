@@ -100,6 +100,9 @@ func (m *Matrix) addDimension(name, desc string, values Values) {
 	if _, ok := m.dimensions[name]; ok {
 		panic(fmt.Sprintf("duplicate dimension name %q", name))
 	}
+	if len(values) == 0 {
+		panic(fmt.Sprintf("no values for dimension %q", name))
+	}
 	m.dimensions[name] = values
 	m.orderedDimensionNames = append(m.orderedDimensionNames, name)
 	m.orderedDimensionDescs = append(m.orderedDimensionDescs, desc)
