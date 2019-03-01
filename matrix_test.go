@@ -1,11 +1,91 @@
 package testmatrix
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
-func TestMatrix_String(t *testing.T) {
+func TestNew(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name       string
+		matrixFunc func() Matrix
+		wantCount  int
+	}{
+		{"empy", func() Matrix {
+			return New()
+		}, 0},
+		{"one", func() Matrix {
+			return New(Dim("dim1", "", Values{}))
+		}, 1},
+		{"two", func() Matrix {
+			return New(
+				Dim("dim1", "", Values{}),
+				Dim("dim2", "", Values{}),
+			)
+		}, 2},
+		{"5", func() Matrix {
+			return New(
+				Dim("dim1", "", Values{}),
+				Dim("dim2", "", Values{}),
+				Dim("dim3", "", Values{}),
+				Dim("dim4", "", Values{}),
+				Dim("dim5", "", Values{}),
+			)
+		}, 5},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			gotMatrix, want := tc.matrixFunc(), tc.wantCount
+			got := len(gotMatrix.dimensions)
+			if want != got {
+				t.Errorf("got %d dimensions; want %d", got, want)
+			}
+		})
+	}
+}
 
+func TestNew_error(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name       string
+		matrixFunc func() Matrix
+		wantPanic  string
+	}{
+		{"dupe", func() Matrix {
+			return New(
+				Dim("dim1", "", Values{}),
+				Dim("dim1", "", Values{}),
+			)
+		}, `duplicate dimension name "dim1"`},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			want := tc.wantPanic
+			func() {
+				defer func() {
+					gotPanic := recover()
+					if gotPanic == nil {
+						t.Fatalf("did not panic; want panic with %q", want)
+					}
+					got := fmt.Sprint(gotPanic)
+					if !strings.Contains(got, want) {
+						t.Errorf("got panic %q; want it to contain %q", got, want)
+					}
+				}()
+				tc.matrixFunc()
+			}()
+		})
+	}
+}
+
+func TestMatrix_String(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name string
 		in   Matrix
@@ -52,9 +132,11 @@ func TestMatrix_String(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			got, want := c.in.String(), c.want
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, want := tc.in.String(), tc.want
 			if got != want {
 				t.Errorf("got %q; want %q", got, want)
 			}
