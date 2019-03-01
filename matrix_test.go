@@ -94,11 +94,6 @@ func TestMatrix_String(t *testing.T) {
 			"",
 		},
 		{
-			"onedim-noval",
-			New(Dim("dimname", "yolo", Values{})),
-			"dimname\t\n-\t\n",
-		},
-		{
 			"onedim-oneval",
 			New(Dim("dim1", "yolo", Values{"dim1val1": 1})),
 			"dim1\t\n-\t\ndim1val1\t\n",
