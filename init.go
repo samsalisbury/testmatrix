@@ -2,7 +2,6 @@ package testmatrix
 
 import (
 	"flag"
-	"testing"
 )
 
 // sup is global state, and keeps track of tests started and finished, allowing
@@ -36,7 +35,7 @@ func DefaultOpts() Opts {
 //
 // Your test package should declare a global *Supervisor and pass a pointer to
 // that here, it will be configured an populated ready to use in creating tests.
-func Run(m *testing.M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
+func Run(m M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
 	if !Init(matrixFunc, config...).ShouldRunTests() {
 		return 0
 	}

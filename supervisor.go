@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"testing"
 )
 
 // supervisor supervises a set of Runners, and collates their results.
@@ -28,7 +27,7 @@ func newSupervisor() *supervisor {
 // in each top-level TestXXX(t *testing.T) function in your package. Calling it
 // more than once per top-level test may cause undefined behaviour and may
 // panic.
-func (s *supervisor) newRunner(t *testing.T) *Runner {
+func (s *supervisor) newRunner(t T) *Runner {
 	matrix := s.matrixFunc()
 	if *printInfo {
 		scenarios := matrix.scenarios()

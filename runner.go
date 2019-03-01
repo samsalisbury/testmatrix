@@ -10,7 +10,7 @@ import (
 
 // Runner runs tests defined in a Matrix.
 type Runner struct {
-	t                  *testing.T
+	t                  T
 	matrix             Matrix
 	testNames          map[string]struct{}
 	testNamesMu        sync.RWMutex
@@ -26,7 +26,7 @@ type Runner struct {
 // NewRunner returns a new *Runner bound to top-level package test t.
 // You must only call NewRunner once per top-level package test, and never for
 // any subtest.
-func NewRunner(t *testing.T) *Runner {
+func NewRunner(t T) *Runner {
 	return sup.newRunner(t)
 }
 
