@@ -69,7 +69,7 @@ func (s *supervisor) PrintSummary() {
 	defer s.mu.Unlock()
 	var total, passed, skipped, failed, missing []string
 	for _, pf := range s.fixtures {
-		t, p, s, f, m := pf.printSummary()
+		t, p, s, f, m := pf.summary()
 		total = append(total, t...)
 		passed = append(passed, p...)
 		skipped = append(skipped, s...)

@@ -144,27 +144,17 @@ func testNamesSlice(m map[string]struct{}) []string {
 	return s
 }
 
-// Quiet causes less output to be produced if set to true.
-// You must not change the value of Quiet after calling Init.
-var Quiet bool
-
 func rtLog(format string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, format+"\n", a...)
 }
 
-func (pf *Runner) printSummary() (total, passed, skipped, failed, missing []string) {
+func (pf *Runner) summary() (total, passed, skipped, failed, missing []string) {
 	t := pf.t
 	t.Helper()
 	total = testNamesSlice(pf.testNames)
 	passed = testNamesSlice(pf.testNamesPassed)
 	skipped = testNamesSlice(pf.testNamesSkipped)
 	failed = testNamesSlice(pf.testNamesFailed)
-
-	if !Quiet {
-		summary := fmt.Sprintf("%s summary: %d failed; %d skipped; %d passed (total %d)",
-			t.Name(), len(failed), len(skipped), len(passed), len(total))
-		fmt.Fprintln(os.Stdout, summary)
-	}
 
 	missingCount := len(total) - (len(passed) + len(failed) + len(skipped))
 	if missingCount != 0 {

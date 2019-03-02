@@ -7,6 +7,8 @@ import (
 )
 
 // A MatrixFunc returns a new Matrix.
+// You should define a MatrixFunc that creates the base matrix for your tests
+// and pass that to Run or Init in your TestMain.
 type MatrixFunc func() Matrix
 
 // Dimensions is a complete Matrix description, with all dimension's names and
@@ -37,9 +39,10 @@ type Binding struct {
 
 // New returns a new Matrix.
 // Note that the order of Dimensions is significant in determining the name of
-// each sub-test run. I.e. if you have 3 dimensions, and a sub-test is being run
-// with value "a" for the first, "b" for the second, and "c" for the third, the
-// test name will be "<top-level-test-name>/a/b/c/<subtest-name>.
+// each sub-test run. For example if you have 3 dimensions,
+// and a sub-test is being run with values
+// "a" for the first, "b" for the second, and "c" for the third dimension,
+// the test name will be "<root>/a/b/c/<subtest>".
 func New(dimensions ...Dimension) Matrix {
 	m := Matrix{dimensions: Dimensions{}}
 	for _, d := range dimensions {
@@ -86,7 +89,8 @@ func (m Matrix) String() string {
 	return out
 }
 
-// PrintDimensions writes the dimensions an allowed values to stdout.
+// PrintDimensions writes the dimensions and allowed values
+// as a table to stdout.
 func (m Matrix) PrintDimensions() {
 	fmt.Println(m.String())
 }

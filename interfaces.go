@@ -30,8 +30,6 @@ type T interface {
 // M implements the *testing.M interface.
 // We depend on this interface rather than *testing.M
 // as it makes this package easier to test.
-//
-// You should always pass a real *testing.M into your own TestMain.
 type M interface {
 	Run() int
 }
