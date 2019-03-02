@@ -14,13 +14,6 @@ import (
 	"flag"
 )
 
-// sup is global state, and keeps track of tests started and finished, allowing
-// us to print a summary at the end. The rationale for using global state here
-// is that we want summary information for a single invocation of `go test`, on
-// a single package, which implies that this state should be global to that
-// invocation.
-var sup = newSupervisor()
-
 var opts = DefaultOpts()
 
 // Opts are global options.
@@ -45,12 +38,12 @@ func DefaultOpts() Opts {
 //
 // You should pass the *testing.M from TestMain as the first parameter.
 // We depend in the interface M for testing purposes.
-func Run(m M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
-	if !Init(matrixFunc, config...).ShouldRunTests() {
+func (m *Matrix) Run(testingM M, config ...func(*Opts)) (exitCode int) {
+	if !m.Init(config...).ShouldRunTests() {
 		return 0
 	}
-	defer sup.PrintSummary()
-	return m.Run()
+	defer m.sup.PrintSummary()
+	return testingM.Run()
 }
 
 // Init ensures flags are parsed, and makes decision on whether to actually run
@@ -58,16 +51,15 @@ func Run(m M, matrixFunc func() Matrix, config ...func(*Opts)) (exitCode int) {
 // that we are actually intending to run tests.
 // If Init returns false, then the user does not intend to run tests, only to
 // print diagnostic information.
-func Init(matrixFunc func() Matrix, config ...func(*Opts)) Opts {
+func (m *Matrix) Init(config ...func(*Opts)) Opts {
 	if !flag.Parsed() {
 		flag.Parse()
 	}
 	for _, c := range config {
 		c(&opts)
 	}
-	sup.matrixFunc = matrixFunc
 	if *printInfo {
-		matrixFunc().PrintDimensions()
+		m.PrintDimensions()
 		opts.PrintInfoOnly = true
 		return opts
 	}
@@ -81,6 +73,6 @@ func Init(matrixFunc func() Matrix, config ...func(*Opts)) Opts {
 // It must be called after all tests have run to completion.
 //
 // If using the Run func, you don't need to additionally call this.
-func PrintSummary() {
-	sup.PrintSummary()
+func (m *Matrix) PrintSummary() {
+	m.sup.PrintSummary()
 }

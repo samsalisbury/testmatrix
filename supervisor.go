@@ -9,11 +9,10 @@ import (
 // supervisor supervises a set of Runners, and collates their results.
 // There should be exactly one global supervisor per `go test` invocation.
 type supervisor struct {
-	mu         sync.Mutex
-	matrixFunc MatrixFunc
-	GetAddrs   func(int) []string
-	fixtures   map[string]*Runner
-	wg         sync.WaitGroup
+	mu       sync.Mutex
+	GetAddrs func(int) []string
+	fixtures map[string]*Runner
+	wg       sync.WaitGroup
 }
 
 func newSupervisor() *supervisor {
@@ -22,13 +21,13 @@ func newSupervisor() *supervisor {
 	}
 }
 
-// newRunner returns a new *Runner ready to run tests with all possible
+// NewRunner returns a new *Runner ready to run tests with all possible
 // combinations of the provided Matrix. NewRunner should be called exactly once
 // in each top-level TestXXX(t *testing.T) function in your package. Calling it
 // more than once per top-level test may cause undefined behaviour and may
 // panic.
-func (s *supervisor) newRunner(t T) *Runner {
-	matrix := s.matrixFunc()
+func (m *Matrix) NewRunner(t T) *Runner {
+	matrix := *m
 	if *printInfo {
 		scenarios := matrix.scenarios()
 		for _, s := range scenarios {
@@ -38,19 +37,19 @@ func (s *supervisor) newRunner(t T) *Runner {
 	}
 	t.Helper()
 	t.Parallel()
-	pf := &Runner{
+	r := &Runner{
 		t:                t,
 		matrix:           matrix,
 		testNames:        map[string]struct{}{},
 		testNamesPassed:  map[string]struct{}{},
 		testNamesSkipped: map[string]struct{}{},
 		testNamesFailed:  map[string]struct{}{},
-		parent:           s,
+		parent:           m.sup,
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.fixtures[t.Name()] = pf
-	return pf
+	m.sup.mu.Lock()
+	defer m.sup.mu.Unlock()
+	m.sup.fixtures[t.Name()] = r
+	return r
 }
 
 // TestCount returns the number of tests that have been registered so far.

@@ -23,13 +23,6 @@ type Runner struct {
 	parent             *supervisor
 }
 
-// NewRunner returns a new *Runner bound to top-level package test t.
-// You must only call NewRunner once per top-level package test, and never for
-// any subtest.
-func NewRunner(t T) *Runner {
-	return sup.newRunner(t)
-}
-
 func (pf *Runner) recordTestStarted(t *testing.T) {
 	t.Helper()
 	name := t.Name()

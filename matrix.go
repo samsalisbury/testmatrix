@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-// A MatrixFunc returns a new Matrix.
-// You should define a MatrixFunc that creates the base matrix for your tests
-// and pass that to Run or Init in your TestMain.
-type MatrixFunc func() Matrix
-
 // Dimensions is a complete Matrix description, with all dimension's names and
 // possible values.
 type Dimensions map[string]Values
@@ -23,6 +18,7 @@ type Values map[string]interface{}
 // Every combination of a single value from each dimension forms a Scenario.
 // Each test you define will be run once for each possible Scenario.
 type Matrix struct {
+	sup                   *supervisor
 	orderedDimensionNames []string
 	orderedDimensionDescs []string
 	dimensions            Dimensions
@@ -44,7 +40,10 @@ type Binding struct {
 // "a" for the first, "b" for the second, and "c" for the third dimension,
 // the test name will be "<root>/a/b/c/<subtest>".
 func New(dimensions ...Dimension) Matrix {
-	m := Matrix{dimensions: Dimensions{}}
+	m := Matrix{
+		sup:        newSupervisor(),
+		dimensions: Dimensions{},
+	}
 	for _, d := range dimensions {
 		m.addDimension(d.name, d.desc, d.values)
 	}

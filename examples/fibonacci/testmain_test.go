@@ -7,31 +7,24 @@ import (
 	"github.com/samsalisbury/testmatrix"
 )
 
+// matrix is our matrix definition.
+var matrix = testmatrix.New(
+	testmatrix.Dim("fib", "fibbonaci func", testmatrix.Values{
+		"recur": &Recursive{},
+		"iter":  &Iterative{},
+	}),
+	testmatrix.Dim("decorator", "decorator to use", testmatrix.Values{
+		"none": NoDecorator,
+		"memo": Memoize,
+	}),
+)
+
 // TestMain tells us to run tests as defined in the matrix.
 // Note: if you need more control over TestMain, you can manually call
-// testmatrix.Init and testmatrix.PrintSummary instead of testmatrix.Run.
-// See the implementation of testmatrix.Run for details on how to do this.
+// matrix.Init and matrix.PrintSummary instead of matrix.Run.
+// See the implementation of matrix.Run for details on how to do this.
 func TestMain(m *testing.M) {
-	os.Exit(testmatrix.Run(m, makeMatrix))
-}
-
-// makeMatrix() returns the full test matrix. If certain matrix combinations
-// should not be tested, it is possible to make such derivations using the
-// Matrix.FixedDimension method, and more like it. Do this in top-level tests.
-//
-// The matrix func should always return a fresh matrix, so that references
-// are not shared between tests.
-func makeMatrix() testmatrix.Matrix {
-	return testmatrix.New(
-		testmatrix.Dim("fib", "fibbonaci func", testmatrix.Values{
-			"recur": &Recursive{},
-			"iter":  &Iterative{},
-		}),
-		testmatrix.Dim("decorator", "decorator to use", testmatrix.Values{
-			"none": NoDecorator,
-			"memo": Memoize,
-		}),
-	)
+	os.Exit(matrix.Run(m))
 }
 
 // fixture represents a fully realised fixture, generated from the injected
@@ -75,5 +68,5 @@ func (r *runner) Run(name string, makeFixture fixtureFunc, test testFunc) {
 }
 
 func newRunner(t *testing.T) *runner {
-	return &runner{testmatrix.NewRunner(t)}
+	return &runner{matrix.NewRunner(t)}
 }
